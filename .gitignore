@@ -134,3 +134,8 @@ dmypy.json
 # Vosk language model
 model/
 *.zip
+
+# Logs
+*.log
+*.out
+*.err

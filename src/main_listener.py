@@ -75,9 +75,12 @@ try:
         while True:
             data = q.get()
             if rec.AcceptWaveform(data):
-                spoken = json.loads(rec.Result())['text'].lower()
+                result = rec.Result()
+                if result is None:
+                    continue
+                spoken = json.loads(result)['text'].lower()
                 print(spoken)
-                if "hey raspy" in spoken:
+                if "hey raspy" in spoken or "hey jeremiah" in spoken:
                     listening = True
                     continue
 

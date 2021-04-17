@@ -1,5 +1,7 @@
 #!/bin/bash
 
-base=$PWD/src
+base=/home/pi/raspy
+#echo $base
 device_name="mic_out"
-python3 $base/main_listener.py -d $device_name -m $base/model 2> "$(date +"%Y%m%dT%H%M").err" 1> "$(date +"%Y%m%dT%H%M").out"
+#sudo -u pi python3 $base/src/main_listener.py -d $device_name -m $base/model 2>> "$base/logs/$(date +'%Y%m%dT%H%M').err" 1>> "$base/logs/$(date +'%Y%m%dT%H%M').out"
+python3 $base/src/main_listener.py -d $device_name -m $base/model
