@@ -8,7 +8,7 @@ import vosk
 import sys
 import json
 
-from src import modules
+import modules
 
 q = queue.Queue()
 
