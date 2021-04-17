@@ -7,7 +7,8 @@ import sounddevice as sd
 import vosk
 import sys
 import json
-import requests
+
+from src import modules
 
 q = queue.Queue()
 
@@ -40,9 +41,6 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     parents=[parser])
 parser.add_argument(
-    '-f', '--filename', type=str, metavar='FILENAME',
-    help='audio file to store recording to')
-parser.add_argument(
     '-m', '--model', type=str, metavar='MODEL_PATH',
     help='Path to the model')
 parser.add_argument(
@@ -66,16 +64,11 @@ try:
 
     model = vosk.Model(args.model)
 
-    if args.filename:
-        dump_fn = open(args.filename, "wb")
-    else:
-        dump_fn = None
-
     with sd.RawInputStream(samplerate=args.samplerate, blocksize=8000, device=args.device, dtype='int16',
                            channels=1, callback=callback):
-        print('#' * 80)
-        print('Press Ctrl+C to stop the recording')
-        print('#' * 80)
+        #print('#' * 80)
+        #print('Press Ctrl+C to stop the recording')
+        #print('#' * 80)
 
         rec = vosk.KaldiRecognizer(model, args.samplerate)
         listening = False
@@ -84,43 +77,33 @@ try:
             if rec.AcceptWaveform(data):
                 spoken = json.loads(rec.Result())['text'].lower()
                 print(spoken)
-                if "hey jeremiah" in spoken:
+                if "hey raspy" in spoken:
                     listening = True
                     continue
-                #Built with https://sarafian.github.io/low-code/2020/03/24/create-private-telegram-chatbot.html
-                if listening and "note" in spoken:
-                    note = spoken.split("note")[1]
-                    URL = "https://api.telegram.org/bot1726688721:AAHvsorK7sEMhkf0mFsT2XmSaIWbhAYOiE8/sendMessage" \
-                          "?chat_id=-586897211&text=" + note
-                    r = requests.get(url=URL)
-                    # extracting data in json format
-                    data = r.json()
-                    if data['ok'] is not True:
-                        print("An error has occurred")
-                        print(data['result'])
-                listening = False
-                if listening and "weather" in spoken:
-                    place_term = None
-                    place_possibilities = ["city", "country", "weather in", "weather like in"]
-                    for possibility in place_possibilities:
-                        if possibility in spoken:
-                            place_term = possibility
-                            break
 
-                    time_term = None
-                    time_possibilities = ["today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday",
-                                          "saturday", "sunday", "on the"]
-                    for possibility in place_possibilities:
-                        if possibility in spoken:
-                            if possibility is "on the":
-                                pass
-                                break
-                            time_term = possibility
-                            break
-
-                listening = False
-            if dump_fn is not None:
-                dump_fn.write(data)
+                if listening:
+                    if "note" in spoken:
+                        modules.write_note_to_telegram(spoken)
+                    elif "weather" in spoken:
+                        modules.get_weather(spoken)
+                    elif "random number" in spoken:
+                        pass
+                    elif "coin" in spoken:
+                        pass
+                    elif "random number" in spoken:
+                        pass
+                    #Coin flip/ja nein
+                    #Zufallszahl
+                    #Witz erzählen
+                    #rezepte
+                    #news
+                    #aktienkurse
+                    #wetter
+                    #mvv fahrtzeiten
+                    #routenplanung
+                    #timer/wecker
+                    #übersetzung
+                    listening = False
 
 except KeyboardInterrupt:
     print('\nDone')
