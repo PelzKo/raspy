@@ -7,6 +7,8 @@ import sounddevice as sd
 import vosk
 import sys
 import json
+import pyttsx3
+from datetime import datetime
 
 import modules
 
@@ -44,6 +46,9 @@ parser.add_argument(
     '-m', '--model', type=str, metavar='MODEL_PATH',
     help='Path to the model')
 parser.add_argument(
+    '-g', '--logs', type=str, metavar='LOGS_PATH',
+    help='Path to the logs')
+parser.add_argument(
     '-d', '--device', type=int_or_str,
     help='input device (numeric ID or substring)')
 parser.add_argument(
@@ -57,6 +62,11 @@ try:
         print("Please download a model for your language from https://alphacephei.com/vosk/models")
         print("and unpack as 'model' in the current folder.")
         parser.exit(0)
+    if args.logs is None:
+        args.logs = "../logs"
+    if not os.path.exists(args.logs):
+        print("Please supply the correct path to the logs folder.")
+        parser.exit(0)
     if args.samplerate is None:
         device_info = sd.query_devices(args.device, 'input')
         # soundfile expects an int, sounddevice provides a float:
@@ -66,12 +76,18 @@ try:
 
     with sd.RawInputStream(samplerate=args.samplerate, blocksize=8000, device=args.device, dtype='int16',
                            channels=1, callback=callback):
-        #print('#' * 80)
-        #print('Press Ctrl+C to stop the recording')
-        #print('#' * 80)
+
+        log_file = args.logs + "/commands.log"
 
         rec = vosk.KaldiRecognizer(model, args.samplerate)
         listening = False
+        no_command = False
+        spoken_temp = ""
+        engine = pyttsx3.init()
+        engine.setProperty('rate', 150)
+        engine.setProperty('volume', 0.5)
+        voices = engine.getProperty('voices')
+        engine.setProperty('voice', voices[1].id)
         while True:
             data = q.get()
             if rec.AcceptWaveform(data):
@@ -81,32 +97,32 @@ try:
                 spoken = json.loads(result)['text'].lower()
                 print(spoken)
                 if "hey raspy" in spoken or "hey jeremiah" in spoken:
+                    spoken_temp = spoken + " "
                     listening = True
+                    engine.say("Yes?")
+                    engine.runAndWait()
                     continue
 
                 if listening:
+                    spoken = spoken_temp + spoken
                     if "note" in spoken:
-                        modules.write_note_to_telegram(spoken)
+                        modules.write_note_to_telegram(spoken, engine)
                     elif "weather" in spoken:
-                        modules.get_weather(spoken)
+                        modules.get_weather(spoken, engine)
                     elif "random number" in spoken:
                         pass
                     elif "coin" in spoken:
                         pass
                     elif "random number" in spoken:
                         pass
-                    #Coin flip/ja nein
-                    #Zufallszahl
-                    #Witz erzählen
-                    #rezepte
-                    #news
-                    #aktienkurse
-                    #wetter
-                    #mvv fahrtzeiten
-                    #routenplanung
-                    #timer/wecker
-                    #übersetzung
+                    else:
+                        no_command = True
+                    if not no_command:
+                        with open(log_file, "a") as log:
+                            log.write(f"{datetime.now()}\t{spoken}")
+                    no_command = False
                     listening = False
+                    spoken_temp = ""
 
 except KeyboardInterrupt:
     print('\nDone')

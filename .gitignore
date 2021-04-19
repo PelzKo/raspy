@@ -136,6 +136,6 @@ model/
 *.zip
 
 # Logs
-*.log
+logs/
 *.out
 *.err

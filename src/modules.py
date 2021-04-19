@@ -1,8 +1,7 @@
 import requests
 
-
 #Built with https://sarafian.github.io/low-code/2020/03/24/create-private-telegram-chatbot.html
-def write_note_to_telegram(spoken):
+def write_note_to_telegram(spoken, engine):
     note = spoken.split("note")[1]
     URL = "https://api.telegram.org/bot1726688721:AAHvsorK7sEMhkf0mFsT2XmSaIWbhAYOiE8/sendMessage" \
           "?chat_id=-586897211&text=" + note
@@ -12,9 +11,14 @@ def write_note_to_telegram(spoken):
     if data['ok'] is not True:
         print("An error has occurred")
         print(data['result'])
+        engine.say("Encountered an error writing the note")
+        engine.runAndWait()
+    else:
+        engine.say("Wrote down the note: "+ note)
+        engine.runAndWait()
 
 
-def get_weather(spoken):
+def get_weather(spoken, engine):
     place_term = None
     place_possibilities = ["city", "country", "weather in", "weather like in"]
     for possibility in place_possibilities:
