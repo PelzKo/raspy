@@ -10,6 +10,9 @@ import json
 import pyttsx3
 from datetime import datetime
 
+import gettext
+_ = gettext.gettext
+
 import modules
 
 q = queue.Queue()
@@ -59,8 +62,8 @@ try:
     if args.model is None:
         args.model = "model"
     if not os.path.exists(args.model):
-        print("Please download a model for your language from https://alphacephei.com/vosk/models")
-        print("and unpack as 'model' in the current folder.")
+        print("Please download a model for your language from https://alphacephei.com/vosk/models and unpack as "
+                "'model' in the current folder.")
         parser.exit(0)
     if args.logs is None:
         args.logs = "../logs"
@@ -88,6 +91,7 @@ try:
         engine.setProperty('volume', 0.5)
         voices = engine.getProperty('voices')
         engine.setProperty('voice', voices[1].id)
+        engine.say(_("Everything is set up, I am listening"))
         while True:
             data = q.get()
             if rec.AcceptWaveform(data):
@@ -96,24 +100,28 @@ try:
                     continue
                 spoken = json.loads(result)['text'].lower()
                 print(spoken)
-                if "hey raspy" in spoken or "hey jeremiah" in spoken:
+                if _("hey raspy") in spoken or _("hey jeremiah") in spoken:
                     spoken_temp = spoken + " "
                     listening = True
-                    engine.say("Yes?")
+                    engine.say(_("Yes?"))
                     engine.runAndWait()
                     continue
 
                 if listening:
                     spoken = spoken_temp + spoken
-                    if "note" in spoken:
+                    if _("note") in spoken:
                         modules.write_note_to_telegram(spoken, engine)
-                    elif "weather" in spoken:
+                    elif _("weather") in spoken:
                         modules.get_weather(spoken, engine)
-                    elif "random number" in spoken:
+                    elif _("random number") in spoken:
                         pass
-                    elif "coin" in spoken:
+                    elif _("coin") in spoken:
                         pass
-                    elif "random number" in spoken:
+                    elif _("reboot") in spoken:
+                        pass
+                    elif _("shutdown") in spoken:
+                        pass
+                    elif _("switch languge") in spoken or _("switch the languge") in spoken:
                         pass
                     else:
                         no_command = True
