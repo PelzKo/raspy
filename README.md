@@ -14,7 +14,9 @@ Prerequisites (with "raspi-config"):
 - Autologin enabled
 
 How to set up:
-1. git clone https://github.com/PelzKo/raspy.git
-2. cd raspy
-3. bash setup.sh
-4. sudo crontab -e (add the line "@reboot sudo -u pi /home/pi/raspy/run.sh /home/pi/raspy >/home/pi/raspy/logs/cron.log 2>&1")
+1. sudo apt update
+2. sudo apt install git
+3. git clone https://github.com/PelzKo/raspy.git
+4. cd raspy
+5. bash setup.sh
+6. sudo crontab -e (add the line "@reboot sudo -u pi /home/pi/raspy/run.sh >/home/pi/raspy/logs/cron.log 2>&1")
