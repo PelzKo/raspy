@@ -8,6 +8,11 @@ Hardware:\
 Raspberry Pi 3 Modell B+ (with micro usb cable, casing and 16 gb sd card)\
 Pirate Audio: Dual Mic for Raspberry Pi
 
+Prerequisites (with "raspi-config"):
+- Set the locale and time zone
+- WiFi set up
+- Autologin enabled
+
 How to set up:
 1. git clone https://github.com/PelzKo/raspy.git
 2. cd raspy

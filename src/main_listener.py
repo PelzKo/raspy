@@ -66,7 +66,7 @@ args = parser.parse_args(remaining)
 try:
     if args.model is None:
         args.model = "models"
-    args.model += "model_"+config.language
+    args.model += "/model_"+config.language
     if not os.path.exists(args.model):
         print("Error finding the model. Please refer to https://alphacephei.com/vosk/models")
         parser.exit(0)
