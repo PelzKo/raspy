@@ -13,9 +13,5 @@ pip3 install pyttsx3
 ###### Create folder for log files ######
 mkdir logs
 
-###### Vosk installation ######
-#cd src || exit 2
-wget https://alphacephei.com/kaldi/models/vosk-model-small-en-us-0.15.zip
-unzip vosk-model-small-en-us-0.15.zip
-mv vosk-model-small-en-us-0.15 model
-rm vosk-model-small-en-us-0.15.zip
+###### Language model download ######
+bash install_language_model.sh

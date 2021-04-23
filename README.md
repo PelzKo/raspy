@@ -12,4 +12,4 @@ How to set up:
 1. git clone https://github.com/PelzKo/raspy.git
 2. cd raspy
 3. bash setup.sh
-4. sudo crontab -e (add the line "@reboot sudo -u pi /home/pi/raspy/run.sh >/home/pi/raspy/logs/cron.log 2>&1")
+4. sudo crontab -e (add the line "@reboot sudo -u pi /home/pi/raspy/run.sh /home/pi/raspy >/home/pi/raspy/logs/cron.log 2>&1")

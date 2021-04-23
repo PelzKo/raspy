@@ -132,7 +132,7 @@ dmypy.json
 .idea/
 
 # Vosk language model
-model/
+models/
 *.zip
 
 # Logs

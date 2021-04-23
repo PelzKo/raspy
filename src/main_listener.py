@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
 
 import argparse
+import gettext
+import json
 import os
 import queue
-import sounddevice as sd
-import vosk
 import sys
-import json
-import pyttsx3
 from datetime import datetime
 
-import gettext
-_ = gettext.gettext
+import pyttsx3
+import sounddevice as sd
+import vosk
 
 import modules
+import config
+
+#The translations were implemented in accordance with https://phrase.com/blog/posts/translate-python-gnu-gettext/
+language = gettext.translation('base', localedir='locales', languages=[config.language])
+language.install()
+_ = language.gettext # The saved language in the config file
+
 
 q = queue.Queue()
-
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -46,8 +51,8 @@ parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     parents=[parser])
 parser.add_argument(
-    '-m', '--model', type=str, metavar='MODEL_PATH',
-    help='Path to the model')
+    '-m', '--model_base', type=str, metavar='MODEL_PATH',
+    help='Path to the base dir of all models')
 parser.add_argument(
     '-g', '--logs', type=str, metavar='LOGS_PATH',
     help='Path to the logs')
@@ -60,10 +65,10 @@ args = parser.parse_args(remaining)
 
 try:
     if args.model is None:
-        args.model = "model"
+        args.model = "models"
+    args.model += "model_"+config.language
     if not os.path.exists(args.model):
-        print("Please download a model for your language from https://alphacephei.com/vosk/models and unpack as "
-                "'model' in the current folder.")
+        print("Error finding the model. Please refer to https://alphacephei.com/vosk/models")
         parser.exit(0)
     if args.logs is None:
         args.logs = "../logs"

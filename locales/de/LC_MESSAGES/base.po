@@ -1,0 +1,65 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2021-04-23 14:33+0200\n"
+"PO-Revision-Date: 2021-04-23 14:33+0200\n"
+"Last-Translator: Konstantin Pelz <EMAIL@ADDRESS>\n"
+"Language-Team: German <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=cp1252\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: src/main_listener.py:94
+msgid "Everything is set up, I am listening"
+msgstr "Alles ist bereit, ich höre zu"
+
+#: src/main_listener.py:103
+msgid "hey jeremiah"
+msgstr "hey jürgen"
+
+#: src/main_listener.py:103
+msgid "hey raspy"
+msgstr "hey raspi"
+
+#: src/main_listener.py:106
+msgid "Yes?"
+msgstr "Ja?"
+
+#: src/main_listener.py:112
+msgid "note"
+msgstr "notiz"
+
+#: src/main_listener.py:114
+msgid "weather"
+msgstr "wetter"
+
+#: src/main_listener.py:116
+msgid "random number"
+msgstr "zufällige zahl"
+
+#: src/main_listener.py:118
+msgid "coin"
+msgstr "münze"
+
+#: src/main_listener.py:120
+msgid "reboot"
+msgstr "neustart"
+
+#: src/main_listener.py:122
+msgid "shutdown"
+msgstr "ausschalten"
+
+#: src/main_listener.py:124
+msgid "switch languge"
+msgstr "sprache ändern"
+
+#: src/main_listener.py:124
+msgid "switch the languge"
+msgstr "ändere die sprache"
+
