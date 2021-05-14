@@ -18,7 +18,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 
 # The translations were implemented in accordance with https://phrase.com/blog/posts/translate-python-gnu-gettext/
-language = gettext.translation('base', localedir='../locales', languages=[config.language])
+language = gettext.translation('base', localedir='locales', languages=[config.language])
 language.install()
 _ = language.gettext  # The saved language in the config file
 
@@ -70,7 +70,7 @@ try:
         args.model_base = "models"
     args.model_base += "/model_" + config.language
     if not os.path.exists(args.model_base):
-        print("Error finding the model. Please refer to https://alphacephei.com/vosk/models")
+        print("Error finding the model at "+args.model_base+". Please refer to https://alphacephei.com/vosk/models")
         parser.exit(0)
     if args.logs is None:
         args.logs = "../logs"
