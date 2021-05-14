@@ -17,10 +17,6 @@ import modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 
-# The translations were implemented in accordance with https://phrase.com/blog/posts/translate-python-gnu-gettext/
-language = gettext.translation('base', localedir='locales', languages=[config.language])
-language.install()
-_ = language.gettext  # The saved language in the config file
 
 q = queue.Queue()
 
@@ -81,6 +77,13 @@ try:
         device_info = sd.query_devices(args.device, 'input')
         # soundfile expects an int, sounddevice provides a float:
         args.samplerate = int(device_info['default_samplerate'])
+
+    base_dir = args.logs.split("/logs")[0]
+
+    # The translations were implemented in accordance with https://phrase.com/blog/posts/translate-python-gnu-gettext/
+    language = gettext.translation('base', localedir=base_dir+'/locales', languages=[config.language])
+    language.install()
+    _ = language.gettext  # The saved language in the config file
 
     model = vosk.Model(args.model_base)
 
