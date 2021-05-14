@@ -1,4 +1,4 @@
-language="de"
+language="en"
 device="mic_out"
 ## Download paths for the language models
 en_model="https://alphacephei.com/kaldi/models/vosk-model-small-en-us-0.15.zip"

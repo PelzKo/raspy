@@ -13,15 +13,17 @@ import sounddevice as sd
 import vosk
 
 import modules
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import config
 
-#The translations were implemented in accordance with https://phrase.com/blog/posts/translate-python-gnu-gettext/
-language = gettext.translation('base', localedir='locales', languages=[config.language])
+# The translations were implemented in accordance with https://phrase.com/blog/posts/translate-python-gnu-gettext/
+language = gettext.translation('base', localedir='../locales', languages=[config.language])
 language.install()
-_ = language.gettext # The saved language in the config file
-
+_ = language.gettext  # The saved language in the config file
 
 q = queue.Queue()
+
 
 def int_or_str(text):
     """Helper function for argument parsing."""
@@ -64,10 +66,10 @@ parser.add_argument(
 args = parser.parse_args(remaining)
 
 try:
-    if args.model is None:
-        args.model = "models"
-    args.model += "/model_"+config.language
-    if not os.path.exists(args.model):
+    if args.model_base is None:
+        args.model_base = "models"
+    args.model_base += "/model_" + config.language
+    if not os.path.exists(args.model_base):
         print("Error finding the model. Please refer to https://alphacephei.com/vosk/models")
         parser.exit(0)
     if args.logs is None:
@@ -80,7 +82,7 @@ try:
         # soundfile expects an int, sounddevice provides a float:
         args.samplerate = int(device_info['default_samplerate'])
 
-    model = vosk.Model(args.model)
+    model = vosk.Model(args.model_base)
 
     with sd.RawInputStream(samplerate=args.samplerate, blocksize=8000, device=args.device, dtype='int16',
                            channels=1, callback=callback):
@@ -95,8 +97,12 @@ try:
         engine.setProperty('rate', 150)
         engine.setProperty('volume', 0.5)
         voices = engine.getProperty('voices')
-        engine.setProperty('voice', voices[1].id)
+        for voice in voices:
+            if "_"+config.language in voice.id.lower():
+                engine.setProperty('voice', voice.id)
+                break
         engine.say(_("Everything is set up, I am listening"))
+        engine.runAndWait()
         while True:
             data = q.get()
             if rec.AcceptWaveform(data):
@@ -123,11 +129,27 @@ try:
                     elif _("coin") in spoken:
                         pass
                     elif _("reboot") in spoken:
-                        pass
+                        os.system("/usr/bin/sudo /sbin/shutdown -r now")
                     elif _("shutdown") in spoken:
-                        pass
-                    elif _("switch languge") in spoken or _("switch the languge") in spoken:
-                        pass
+                        os.system("/usr/bin/sudo /sbin/shutdown")
+                    elif _("switch language") in spoken or _("switch the language") in spoken:
+                        next_language = spoken.split(_("to"))[1].split(" ")[1]
+                        next_language_short = "invalid"
+                        if next_language == _("german"):
+                            next_language_short = "de"
+                        elif next_language == _("english"):
+                            next_language_short = "en"
+                        else:
+                            engine.say(_("Language")+" "+next_language+" "+ _("not recognized"))
+                            engine.runAndWait()
+
+                        if next_language_short != "invalid":
+                            with open('../config.py', 'r+') as f:
+                                file_source = f.read()
+                                f.seek(0)
+                                f.write("language=\""+next_language_short+"\"\n"+file_source.split("\n",maxsplit=1)[1])
+                                f.truncate()
+                            os.system("/usr/bin/sudo /sbin/shutdown -r now")
                     else:
                         no_command = True
                     if not no_command:
