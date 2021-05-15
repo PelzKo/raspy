@@ -135,3 +135,6 @@ models/
 logs/
 *.out
 *.err
+
+# Module specific
+weather.json

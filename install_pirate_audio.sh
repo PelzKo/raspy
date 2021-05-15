@@ -32,12 +32,12 @@ sudo apt install -y ladspa-sdk invada-studio-plugins-ladspa
 sudo apt install -y pulseaudio python3-pip python3-rpi.gpio python3-spidev python3-numpy python3-pil python3-pil.imagetk libportaudio2
 sudo python3 -m pip install fonts font-roboto ST7789 sounddevice
 
-inform "Adding dtoverlay=adau7002-simple to /boot/config.txt"
-add_to_config_text "dtoverlay=adau7002-simple" /boot/config.txt
 inform "Adding dtoverlay=hifiberry-dac to /boot/config.txt"
 add_to_config_text "dtoverlay=hifiberry-dac" /boot/config.txt
 inform "Adding gpio=25=op,dh to /boot/config.txt"
 add_to_config_text "gpio=25=op,dh" /boot/config.txt
+inform "Adding dtoverlay=adau7002-simple to /boot/config.txt"
+add_to_config_text "dtoverlay=adau7002-simple" /boot/config.txt
 
 if [ -f "$ASOUND_CONFIG" ]; then
     warning "Backing up $ASOUND_CONFIG to $ASOUND_CONFIG-$DATESTAMP"
