@@ -82,7 +82,7 @@ def get_weather(spoken, engine):
     if _("at") in split:
         split.remove(_("at"))
     if len(split) < 2:
-        say_with_engine(engine,_("Please state a date or a date and time"))
+        say_with_engine(_("Please state a date or a date and time"))
         return None
     date_term = split[1]
     time_term = None
@@ -100,7 +100,7 @@ def get_weather(spoken, engine):
     elif date_term in absolute_terms:
         date_number = absolute_terms.index(date_term)
     else:
-        say_with_engine(engine,f'{_("String")} {date_term} {_("is not valid")}')
+        say_with_engine(f'{_("String")} {date_term} {_("is not valid")}')
         return None
 
     data = {}
@@ -131,7 +131,7 @@ def get_weather(spoken, engine):
             print(r)
             with open(log_file, "a") as log:
                 log.write(f'ERR\t{datetime.now()}\t{r}\n')
-            say_with_engine(engine,(_("Encountered an error getting the weather")))
+            say_with_engine((_("Encountered an error getting the weather")))
             return None
         # extracting data in json format
         data = r.json()
@@ -149,7 +149,7 @@ def get_weather(spoken, engine):
             prob_rain = data["hourly"][time_difference[0]]["pop"]*100
 
             to_say = f'{date_term} {_("at")} {time_term} {_("o clock the weather will be")} {weather}. {_("It will be")} {temp} {_("degrees celsius and the probability for rain is")} {prob_rain} {_("percent")}'
-            say_with_engine(engine, to_say)
+            say_with_engine(to_say)
 
             return None
         else:
@@ -163,7 +163,7 @@ def get_weather(spoken, engine):
     if day_difference == -1:
         with open(log_file, "a") as log:
             log.write(f'ERR\t{datetime.now()}\t{date_term}\t{time_term}\n')
-        say_with_engine(engine,(_("Encountered an error getting the weather")))
+        say_with_engine((_("Encountered an error getting the weather")))
         return None
 
     weather = data["daily"][day_difference]["weather"][0]["description"]
@@ -172,7 +172,7 @@ def get_weather(spoken, engine):
     prob_rain = data["daily"][day_difference]["pop"]*100
 
     to_say = f'{date_term} {_("the weather will be")} {weather}. {_("It will be")} {temp_day} {_("degrees celsius during the day and")} {temp_eve} {_("degrees celcius during the evening. The probability for rain is")} {prob_rain} {_("percent")}'
-    say_with_engine(engine,to_say)
+    say_with_engine(to_say)
 
 def say_random_number(spoken, engine):
     needed = spoken.split(_("between"))[1]
@@ -198,7 +198,7 @@ def set_timer(spoken, engine):
     elif _("hour") in everything:
         seconds_amount += 60*60*w2n.word_to_num(everything.split("hour")[0])
     else:
-        say_with_engine(engine, f'{_("Sorry, but I did not understand for")} {everything}')
+        say_with_engine(f'{_("Sorry, but I did not understand for")} {everything}')
         return None
 
     to_say = ""
@@ -207,11 +207,11 @@ def set_timer(spoken, engine):
     elif _("text") in everything:
         to_say = everything.split(_("text"))[1]
 
-    start_time = threading.Timer(seconds_amount, say_with_engine, [engine, f'{_("Timer is up")} {to_say}'])
+    start_time = threading.Timer(seconds_amount, say_with_engine, [f'{_("Timer is up")} {to_say}'])
     start_time.start()
 
 
-def say_with_engine(engine, text):
+def say_with_engine(text):
     engine.say(text)
     engine.runAndWait()
 
@@ -280,12 +280,20 @@ try:
         engine.setProperty('rate', 150)
         engine.setProperty('volume', 0.5)
         voices = engine.getProperty('voices')
+        voice_id_en = None
+        voice_id_normal = None
+
         for voice in voices:
+            if '_en' in voice.id.lower():
+                voice_id_en = voice.id
+                if voice_id_normal is not None:
+                    break
             if f'_{config.language}' in voice.id.lower():
-                engine.setProperty('voice', voice.id)
-                break
-        engine.say(_("Everything is set up, I am listening"))
-        engine.runAndWait()
+                voice_id_normal = voice.id
+                if voice_id_en is not None:
+                    break
+        engine.setProperty('voice', voice_id_normal)
+        say_with_engine(_("Everything is set up, I am listening"))
         while True:
             try:
                 data = q.get()
@@ -358,7 +366,11 @@ try:
             except Exception as ex:
                 err_text = type(ex).__name__ + ': ' + str(ex)
                 print(err_text)
-                say_with_engine(engine, err_text)
+
+                engine.setProperty('voice', voice_id_en)
+                say_with_engine(err_text)
+                engine.setProperty('voice', voice_id_normal)
+
                 with open(log_file, "a") as log:
                     log.write(f'ERR\t{datetime.now()}\t{err_text}\n')
 

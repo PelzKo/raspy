@@ -1,0 +1,146 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2021-05-16 17:30+0200\n"
+"PO-Revision-Date: 2021-05-16 17:30+0200\n"
+"Last-Translator: Konstantin Pelz <EMAIL@ADDRESS>\n"
+"Language-Team: Englisch <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: src/main_listener.py:45 src/main_listener.py:205 src/main_listener.py:206
+#: src/main_listener.py:315
+msgid "note"
+msgstr "note"
+
+#: src/main_listener.py:53
+msgid "Encountered an error writing the note"
+msgstr "Encountered an error writing the note"
+
+#: src/main_listener.py:78 src/main_listener.py:317
+msgid "weather"
+msgstr "weather"
+
+#: src/main_listener.py:80 src/main_listener.py:81 src/main_listener.py:192
+msgid "for"
+msgstr "for"
+
+#: src/main_listener.py:82 src/main_listener.py:83
+msgid "at"
+msgstr "at"
+
+#: src/main_listener.py:85
+msgid "Please state a date or a date and time"
+msgstr "Please state a date or a date and time"
+
+#: src/main_listener.py:134 src/main_listener.py:166
+msgid "Encountered an error getting the weather"
+msgstr "Encountered an error getting the weather"
+
+#: src/main_listener.py:178
+msgid "between"
+msgstr "between"
+
+#: src/main_listener.py:179
+msgid "and"
+msgstr "and"
+
+#: src/main_listener.py:194
+msgid "second"
+msgstr "second"
+
+#: src/main_listener.py:196
+msgid "minute"
+msgstr "minute"
+
+#: src/main_listener.py:198
+msgid "hour"
+msgstr "hour"
+
+#: src/main_listener.py:207 src/main_listener.py:208
+msgid "text"
+msgstr "text"
+
+#: src/main_listener.py:296
+msgid "Everything is set up, I am listening"
+msgstr "Everything is set up, I am listening"
+
+#: src/main_listener.py:306
+msgid "hey jeremiah"
+msgstr "hey jeremiah"
+
+#: src/main_listener.py:306
+msgid "hey raspy"
+msgstr "hey raspy"
+
+#: src/main_listener.py:309
+msgid "yes?"
+msgstr "yes?"
+
+#: src/main_listener.py:319
+msgid "random number"
+msgstr "random number"
+
+#: src/main_listener.py:321
+msgid "timer"
+msgstr "timer"
+
+#: src/main_listener.py:323
+msgid "coin"
+msgstr "coin"
+
+#: src/main_listener.py:325
+msgid "Head"
+msgstr "Head"
+
+#: src/main_listener.py:327
+msgid "Tails"
+msgstr "Tails"
+
+#: src/main_listener.py:329
+msgid "reboot"
+msgstr "reboot"
+
+#: src/main_listener.py:330
+msgid "Rebooting"
+msgstr "Rebooting"
+
+#: src/main_listener.py:333
+msgid "shutdown"
+msgstr "shutdown"
+
+#: src/main_listener.py:334
+msgid "Shutting down"
+msgstr "Shutting down"
+
+#: src/main_listener.py:337
+msgid "change"
+msgstr "change"
+
+#: src/main_listener.py:337
+msgid "language"
+msgstr "language"
+
+#: src/main_listener.py:337
+msgid "switch"
+msgstr "switch"
+
+#: src/main_listener.py:338
+msgid "to"
+msgstr "to"
+
+#: src/main_listener.py:340
+msgid "german"
+msgstr "german"
+
+#: src/main_listener.py:342
+msgid "english"
+msgstr "english"
+
