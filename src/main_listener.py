@@ -7,6 +7,8 @@ import os
 import queue
 import sys
 import random
+from os.path import exists
+
 import requests
 import threading
 
@@ -54,34 +56,58 @@ def write_note_to_telegram(spoken, engine):
 
     engine.runAndWait()
 
+def difference_next_weekday(d, weekday):
+    days_ahead = weekday - d.weekday()
+    if days_ahead <= 0:  # Target day already happened this week
+        days_ahead += 7
+    return days_ahead
 
+def difference_next_hour_or_weekday(d, weekday, hour):
+    days_ahead = weekday - d.weekday()
+    if days_ahead < 0:  # Target day already happened this week
+        days_ahead += 7
+    hours_ahead = hour - d.hour
+    hours_ahead += days_ahead*24
+    if hours_ahead<=48:
+        return hours_ahead, True
+    return days_ahead, False
+
+
+# Currently, only Innsbruck is supported
 def get_weather(spoken, engine):
     everything = spoken.split(_("weather"))[1]
     split = everything.split(" ")
-    date_term = split[2]
-    time_term = split[4]
+    if _("for") in split:
+        split.remove(_("for"))
+    if _("at") in split:
+        split.remove(_("at"))
+    if len(split) < 2:
+        say_with_engine(engine,_("Please state a date or a date and time"))
+        return None
+    date_term = split[1]
+    time_term = None
+    if len(split)>2:
+        time_term = w2n.word_to_num(split[2])
+        if len(split)>3:
+            if split[3]=="pm":
+                time_term+=12
 
-    #if place_term.lower() != "innsbruck":
-    #    say_with_engine(engine, _("Currently, only Innsbruck is supported"))
-    #    return None
+    relative_terms = ["today", "tomorrow"]
+    absolute_terms = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
+    if date_term in relative_terms:
+        date_number = relative_terms.index(date_term)
+    elif date_term in absolute_terms:
+        date_number = absolute_terms.index(date_term)
+    else:
+        say_with_engine(engine,f'{_("String")} {date_term} {_("is not valid")}')
+        return None
 
- #   time_possibilities = ["today", "tomorrow", "monday", "tuesday", "wednesday", "thursday", "friday",
- #                         "saturday", "sunday"]
- #   for possibility in time_possibilities:
- #       if possibility in spoken:
- #           if possibility is "on the":
- #               pass
- #               break
- #           time_term = possibility
- #           break
+    data = {}
 
-
-
-
-
-    with open('weather.json', 'r') as json_file:
-        data = json.load(json_file)
+    if exists("weather.json"):
+        with open('weather.json', 'r') as json_file:
+            data = json.load(json_file)
 
     current_time = datetime.now()
     do_request = True
@@ -89,7 +115,7 @@ def get_weather(spoken, engine):
         last_time_requested = data["timestamp"]
         date_time_obj = datetime.strptime(last_time_requested, '%Y-%m-%d %H:%M:%S.%f')
         difference = current_time - date_time_obj
-        do_request = difference.total_seconds()*60 > 60
+        do_request = difference.total_seconds()/60 > 60
     if do_request:
         # Hardcoded: Todo Change to acomodate all cities
         lat = "47.260162"
@@ -97,23 +123,56 @@ def get_weather(spoken, engine):
         part = "current,alerts"
         api_key = "f6e1716a5a1d1881b048e5fa4b6acde0"
         unit = "metric"
-        url = f'https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&exclude={part}&appid={api_key}&units={unit}'
+        language = config.language
+        url = f'https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&exclude={part}&appid={api_key}&units={unit}&lang={language}'
         r = requests.get(url=url)
+        if r.__getattribute__("status_code") != 200:
+            print("An error has occurred")
+            print(r)
+            with open(log_file, "a") as log:
+                log.write(f'ERR\t{datetime.now()}\t{r}\n')
+            say_with_engine(engine,(_("Encountered an error getting the weather")))
+            return None
         # extracting data in json format
         data = r.json()
-        data["timestamp"] = current_time
+        data["timestamp"] = str(current_time)
         with open('weather.json', 'w') as json_file:
             json.dump(data, json_file)
 
-    if r.__getattribute__("status_code") != 200:
-        print("An error has occurred")
-        print(data)
-        engine.say(_("Encountered an error getting the weather"))
+    if time_term >= 0:
+        if date_term in relative_terms:
+            date_number = (current_time.weekday()+date_number) % 7
+        time_difference = difference_next_hour_or_weekday(current_time,date_number,time_term)
+        if time_difference[1]:
+            weather = data["hourly"][time_difference[0]]["weather"][0]["description"]
+            temp = data["hourly"][time_difference[0]]["temp"]
+            prob_rain = data["hourly"][time_difference[0]]["pop"]*100
+
+            to_say = f'{date_term} {_("at")} {time_term} {_("o clock the weather will be")} {weather}. {_("It will be")} {temp} {_("degrees celsius and the probability for rain is")} {prob_rain} {_("percent")}'
+            say_with_engine(engine, to_say)
+
+            return None
+        else:
+            day_difference = time_difference[0]
     else:
-        engine.say(f'{_("Wrote down the note: ")} {unit}')
+        if date_term in relative_terms:
+            day_difference = date_number
+        else:
+            day_difference = difference_next_weekday(current_time,date_number)
 
-    engine.runAndWait()
+    if day_difference == -1:
+        with open(log_file, "a") as log:
+            log.write(f'ERR\t{datetime.now()}\t{date_term}\t{time_term}\n')
+        say_with_engine(engine,(_("Encountered an error getting the weather")))
+        return None
 
+    weather = data["daily"][day_difference]["weather"][0]["description"]
+    temp_day = data["daily"][day_difference]["temp"]["day"]
+    temp_eve = data["daily"][day_difference]["temp"]["eve"]
+    prob_rain = data["daily"][day_difference]["pop"]*100
+
+    to_say = f'{date_term} {_("the weather will be")} {weather}. {_("It will be")} {temp_day} {_("degrees celsius during the day and")} {temp_eve} {_("degrees celcius during the evening. The probability for rain is")} {prob_rain} {_("percent")}'
+    say_with_engine(engine,to_say)
 
 def say_random_number(spoken, engine):
     needed = spoken.split(_("between"))[1]
@@ -228,71 +287,80 @@ try:
         engine.say(_("Everything is set up, I am listening"))
         engine.runAndWait()
         while True:
-            data = q.get()
-            if rec.AcceptWaveform(data):
-                result = rec.Result()
-                if result is None:
-                    continue
-                spoken = json.loads(result)['text'].lower()
-                print(spoken)
-                if _("hey raspy") in spoken or _("hey jeremiah") in spoken:
-                    spoken_temp = spoken
-                    listening = True
-                    engine.say(_("yes?"))
-                    engine.runAndWait()
-                    continue
+            try:
+                data = q.get()
+                if rec.AcceptWaveform(data):
+                    result = rec.Result()
+                    if result is None:
+                        continue
+                    spoken = json.loads(result)['text'].lower()
+                    print(spoken)
+                    if _("hey raspy") in spoken or _("hey jeremiah") in spoken:
+                        spoken_temp = spoken
+                        listening = True
+                        engine.say(_("yes?"))
+                        engine.runAndWait()
+                        continue
 
-                if listening:
-                    spoken = f'{spoken_temp} {spoken}'
-                    if _("note") in spoken:
-                        write_note_to_telegram(spoken, engine)
-                    elif _("weather") in spoken:
-                        get_weather(spoken, engine)
-                    elif _("random number") in spoken:
-                        say_random_number(spoken, engine)
-                    elif _("timer") in spoken:
-                        set_timer(spoken, engine)
-                    elif _("coin") in spoken:
-                        if random.choice([True, False]):
-                            engine.say(_("Head"))
-                        else:
-                            engine.say(_("Tails"))
-                        engine.runAndWait()
-                    elif _("reboot") in spoken:
-                        engine.say(_("Rebooting"))
-                        engine.runAndWait()
-                        os.system("/usr/bin/sudo /sbin/shutdown -r now")
-                    elif _("shutdown") in spoken:
-                        engine.say(_("Shutting down"))
-                        engine.runAndWait()
-                        os.system("/usr/bin/sudo /sbin/shutdown now")
-                    elif _("language") in spoken and (_("switch") in spoken or _("change") in spoken):
-                        next_language = spoken.split(_("to"))[1].split(" ")[1]
-                        next_language_short = "invalid"
-                        if next_language == _("german"):
-                            next_language_short = "de"
-                        elif next_language == _("english"):
-                            next_language_short = "en"
-                        else:
-                            engine.say(f'{_("language")} {next_language} {_("not recognized")}')
+                    if listening:
+                        spoken = f'{spoken_temp} {spoken}'
+                        if _("note") in spoken:
+                            write_note_to_telegram(spoken, engine)
+                        elif _("weather") in spoken:
+                            get_weather(spoken, engine)
+                        elif _("random number") in spoken:
+                            say_random_number(spoken, engine)
+                        elif _("timer") in spoken:
+                            set_timer(spoken, engine)
+                        elif _("coin") in spoken:
+                            if random.choice([True, False]):
+                                engine.say(_("Head"))
+                            else:
+                                engine.say(_("Tails"))
                             engine.runAndWait()
-
-                        if next_language_short != "invalid":
-                            with open('../config.py', 'r+') as f:
-                                file_source = f.read()
-                                f.seek(0)
-                                rest_of_text = file_source.split("\n", maxsplit=1)[1]
-                                f.write(f'language=\"{next_language_short}\"\n{rest_of_text}')
-                                f.truncate()
+                        elif _("reboot") in spoken:
+                            engine.say(_("Rebooting"))
+                            engine.runAndWait()
                             os.system("/usr/bin/sudo /sbin/shutdown -r now")
-                    else:
-                        no_command = True
-                    if not no_command:
-                        with open(log_file, "a") as log:
-                            log.write(f'{datetime.now()}\t{spoken}\n')
-                    no_command = False
-                    listening = False
-                    spoken_temp = ""
+                        elif _("shutdown") in spoken:
+                            engine.say(_("Shutting down"))
+                            engine.runAndWait()
+                            os.system("/usr/bin/sudo /sbin/shutdown now")
+                        elif _("language") in spoken and (_("switch") in spoken or _("change") in spoken):
+                            next_language = spoken.split(_("to"))[1].split(" ")[1]
+                            next_language_short = "invalid"
+                            if next_language == _("german"):
+                                next_language_short = "de"
+                            elif next_language == _("english"):
+                                next_language_short = "en"
+                            else:
+                                engine.say(f'{_("language")} {next_language} {_("not recognized")}')
+                                engine.runAndWait()
+
+                            if next_language_short != "invalid":
+                                with open('../config.py', 'r+') as f:
+                                    file_source = f.read()
+                                    f.seek(0)
+                                    rest_of_text = file_source.split("\n", maxsplit=1)[1]
+                                    f.write(f'language=\"{next_language_short}\"\n{rest_of_text}')
+                                    f.truncate()
+                                if exists("weather.json"):
+                                    os.remove("weather.json")
+                                os.system("/usr/bin/sudo /sbin/shutdown -r now")
+                        else:
+                            no_command = True
+                        if not no_command:
+                            with open(log_file, "a") as log:
+                                log.write(f'CMD\t{datetime.now()}\t{spoken}\n')
+                        no_command = False
+                        listening = False
+                        spoken_temp = ""
+            except Exception as ex:
+                err_text = type(ex).__name__ + ': ' + str(ex)
+                print(err_text)
+                say_with_engine(engine, err_text)
+                with open(log_file, "a") as log:
+                    log.write(f'ERR\t{datetime.now()}\t{err_text}\n')
 
 except KeyboardInterrupt:
     print('\nDone')
