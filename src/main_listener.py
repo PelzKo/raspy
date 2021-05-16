@@ -41,20 +41,19 @@ def callback(indata, frames, time, status):
 
 
 # Built with https://sarafian.github.io/low-code/2020/03/24/create-private-telegram-chatbot.html
-def write_note_to_telegram(spoken, engine):
+def write_note_to_telegram(spoken):
     note = spoken.split(_("note"))[1]
-    url = f'https://api.telegram.org/bot1726688721:AAHvsorK7sEMhkf0mFsT2XmSaIWbhAYOiE8/sendMessage?chat_id=-586897211&text={note}'
+    url = f'https://api.telegram.org/bot{config.telegram_bot_token}/sendMessage?chat_id=-586897211&text={note}'
     r = requests.get(url=url)
     # extracting data in json format
     data = r.json()
     if data['ok'] is not True:
         print("An error has occurred")
         print(data['result'])
-        engine.say(_("Encountered an error writing the note"))
+        say_with_engine(_("Encountered an error writing the note"))
     else:
-        engine.say(f'{_("Wrote down the note: ")} {note}')
+        say_with_engine(f'{_("Wrote down the note: ")} {note}')
 
-    engine.runAndWait()
 
 def difference_next_weekday(d, weekday):
     days_ahead = weekday - d.weekday()
@@ -62,19 +61,20 @@ def difference_next_weekday(d, weekday):
         days_ahead += 7
     return days_ahead
 
+
 def difference_next_hour_or_weekday(d, weekday, hour):
     days_ahead = weekday - d.weekday()
     if days_ahead < 0:  # Target day already happened this week
         days_ahead += 7
     hours_ahead = hour - d.hour
-    hours_ahead += days_ahead*24
-    if hours_ahead<=48:
+    hours_ahead += days_ahead * 24
+    if hours_ahead <= 48:
         return hours_ahead, True
     return days_ahead, False
 
 
 # Currently, only Innsbruck is supported
-def get_weather(spoken, engine):
+def get_weather(spoken):
     everything = spoken.split(_("weather"))[1]
     split = everything.split(" ")
     if _("for") in split:
@@ -86,11 +86,11 @@ def get_weather(spoken, engine):
         return None
     date_term = split[1]
     time_term = None
-    if len(split)>2:
+    if len(split) > 2:
         time_term = w2n.word_to_num(split[2])
-        if len(split)>3:
-            if split[3]=="pm":
-                time_term+=12
+        if len(split) > 3:
+            if split[3] == "pm":
+                time_term += 12
 
     relative_terms = ["today", "tomorrow"]
     absolute_terms = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
@@ -115,13 +115,13 @@ def get_weather(spoken, engine):
         last_time_requested = data["timestamp"]
         date_time_obj = datetime.strptime(last_time_requested, '%Y-%m-%d %H:%M:%S.%f')
         difference = current_time - date_time_obj
-        do_request = difference.total_seconds()/60 > 60
+        do_request = difference.total_seconds() / 60 > 60
     if do_request:
         # Hardcoded: Todo Change to acomodate all cities
         lat = "47.260162"
         lon = "11.349379"
-        part = "current,alerts"
-        api_key = "f6e1716a5a1d1881b048e5fa4b6acde0"
+        part = "current,alerts,minutely"
+        api_key = config.weather_api_token
         unit = "metric"
         language = config.language
         url = f'https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&exclude={part}&appid={api_key}&units={unit}&lang={language}'
@@ -141,12 +141,12 @@ def get_weather(spoken, engine):
 
     if time_term >= 0:
         if date_term in relative_terms:
-            date_number = (current_time.weekday()+date_number) % 7
-        time_difference = difference_next_hour_or_weekday(current_time,date_number,time_term)
+            date_number = (current_time.weekday() + date_number) % 7
+        time_difference = difference_next_hour_or_weekday(current_time, date_number, time_term)
         if time_difference[1]:
             weather = data["hourly"][time_difference[0]]["weather"][0]["description"]
             temp = data["hourly"][time_difference[0]]["temp"]
-            prob_rain = data["hourly"][time_difference[0]]["pop"]*100
+            prob_rain = data["hourly"][time_difference[0]]["pop"] * 100
 
             to_say = f'{date_term} {_("at")} {time_term} {_("o clock the weather will be")} {weather}. {_("It will be")} {temp} {_("degrees celsius and the probability for rain is")} {prob_rain} {_("percent")}'
             say_with_engine(to_say)
@@ -158,7 +158,7 @@ def get_weather(spoken, engine):
         if date_term in relative_terms:
             day_difference = date_number
         else:
-            day_difference = difference_next_weekday(current_time,date_number)
+            day_difference = difference_next_weekday(current_time, date_number)
 
     if day_difference == -1:
         with open(log_file, "a") as log:
@@ -169,12 +169,13 @@ def get_weather(spoken, engine):
     weather = data["daily"][day_difference]["weather"][0]["description"]
     temp_day = data["daily"][day_difference]["temp"]["day"]
     temp_eve = data["daily"][day_difference]["temp"]["eve"]
-    prob_rain = data["daily"][day_difference]["pop"]*100
+    prob_rain = data["daily"][day_difference]["pop"] * 100
 
     to_say = f'{date_term} {_("the weather will be")} {weather}. {_("It will be")} {temp_day} {_("degrees celsius during the day and")} {temp_eve} {_("degrees celcius during the evening. The probability for rain is")} {prob_rain} {_("percent")}'
     say_with_engine(to_say)
 
-def say_random_number(spoken, engine):
+
+def say_random_number(spoken):
     needed = spoken.split(_("between"))[1]
     number_split = needed.split(_("and"))
     one = w2n.word_to_num(number_split[0])
@@ -183,20 +184,20 @@ def say_random_number(spoken, engine):
     from_num = min(one, two)
     to_num = max(one, two)
 
-    engine.say(f'{_("The number between")} {from_num} {_("and")} {to_num} {_("is")} {random.randint(from_num, to_num)}')
-    engine.runAndWait()
+    say_with_engine(
+        f'{_("The number between")} {from_num} {_("and")} {to_num} {_("is")} {random.randint(from_num, to_num)}')
     return None
 
 
-def set_timer(spoken, engine):
+def set_timer(spoken):
     everything = spoken.split(_("for"))[1]
     seconds_amount = 0
     if _("second") in everything:
         seconds_amount += w2n.word_to_num(everything.split("second")[0])
     elif _("minute") in everything:
-        seconds_amount += 60*w2n.word_to_num(everything.split("minute")[0])
+        seconds_amount += 60 * w2n.word_to_num(everything.split("minute")[0])
     elif _("hour") in everything:
-        seconds_amount += 60*60*w2n.word_to_num(everything.split("hour")[0])
+        seconds_amount += 60 * 60 * w2n.word_to_num(everything.split("hour")[0])
     else:
         say_with_engine(f'{_("Sorry, but I did not understand for")} {everything}')
         return None
@@ -313,13 +314,13 @@ try:
                     if listening:
                         spoken = f'{spoken_temp} {spoken}'
                         if _("note") in spoken:
-                            write_note_to_telegram(spoken, engine)
+                            write_note_to_telegram(spoken)
                         elif _("weather") in spoken:
-                            get_weather(spoken, engine)
+                            get_weather(spoken)
                         elif _("random number") in spoken:
-                            say_random_number(spoken, engine)
+                            say_random_number(spoken)
                         elif _("timer") in spoken:
-                            set_timer(spoken, engine)
+                            set_timer(spoken)
                         elif _("coin") in spoken:
                             if random.choice([True, False]):
                                 engine.say(_("Head"))

@@ -31,3 +31,13 @@ Example build (bought on the 04.04.2021 on https://www.berrybase.de/):
 | Gehäuse für Raspberry Pi 3B+, 3B, 2B, 1B+ schwarz                       | 1677046      | 4,50 €  |
 | SanDisk Ultra microSDHC A1 98MB/s Class 10 Speicherkarte + Adapter 16GB | 619659161347 | 4,90 €  |
 | Pirate Audio HAT für Raspberry Pi, für Stereoaufnahmen                  | PIRATE-5     | 26,67 € |
+
+
+Current functionality:
+- Writing notes through telegram
+- Giving the weather for Innsbruck
+- Random number generator
+- Flipping a coin
+- Setting a timer
+- Rebooting and shutting down
+- Changing the language between german and englisch
