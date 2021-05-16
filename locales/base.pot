@@ -113,7 +113,7 @@ msgid "Rebooting"
 msgstr ""
 
 #: src/main_listener.py:333
-msgid "shutdown"
+msgid "shut down"
 msgstr ""
 
 #: src/main_listener.py:334
@@ -144,3 +144,6 @@ msgstr ""
 msgid "english"
 msgstr ""
 
+#: src/main_listener.py:360
+msgid "Could not understand"
+msgstr ""

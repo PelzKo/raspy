@@ -330,7 +330,7 @@ try:
                             engine.say(_("Rebooting"))
                             engine.runAndWait()
                             os.system("/usr/bin/sudo /sbin/shutdown -r now")
-                        elif _("shutdown") in spoken:
+                        elif _("shut down") in spoken:
                             engine.say(_("Shutting down"))
                             engine.runAndWait()
                             os.system("/usr/bin/sudo /sbin/shutdown now")
@@ -357,6 +357,7 @@ try:
                                 os.system("/usr/bin/sudo /sbin/shutdown -r now")
                         else:
                             no_command = True
+                            say_with_engine(f'{_("Could not understand")}: {spoken}')
                         if not no_command:
                             with open(log_file, "a") as log:
                                 log.write(f'CMD\t{datetime.now()}\t{spoken}\n')
